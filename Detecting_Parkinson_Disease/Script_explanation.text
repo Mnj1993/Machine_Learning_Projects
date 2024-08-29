@@ -1,0 +1,103 @@
+This code is a full workflow for loading a dataset, preprocessing it, training a machine learning model, and then visualizing the results. It uses libraries like `pandas`, `NumPy`, `scikit-learn`, `XGBoost`, and `matplotlib`. Here’s a step-by-step explanation:
+
+### **1. Importing Libraries**
+```python
+import numpy as np
+import pandas as pd
+import os, sys
+from sklearn.preprocessing import MinMaxScaler
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+```
+- **`numpy` (`np`)**: A library for numerical computations in Python, often used for array operations.
+- **`pandas` (`pd`)**: A library for data manipulation and analysis, used here for reading and handling the dataset.
+- **`os, sys`**: Standard Python libraries for interacting with the operating system and system-specific parameters, though they are not used further in this script.
+- **`sklearn.preprocessing.MinMaxScaler`**: A tool from scikit-learn for scaling features to a specific range (in this case, between -1 and 1).
+- **`xgboost.XGBClassifier`**: An implementation of the eXtreme Gradient Boosting (XGBoost) classifier, a powerful and efficient model for classification tasks.
+- **`sklearn.model_selection.train_test_split`**: A function to split the dataset into training and testing sets.
+- **`sklearn.metrics.accuracy_score`**: A function to calculate the accuracy of the model’s predictions.
+- **`matplotlib.pyplot` (`plt`)**: Used to create visualizations, in this case, a bar chart.
+
+### **2. Loading the Dataset**
+```python
+df = pd.read_csv('/Users/manojnagarajan/Desktop/Machine_Learning/Parkenson Detection project/parkinsons/parkinsons.data')
+df.head()
+```
+- **`pd.read_csv()`**: Reads a CSV file into a DataFrame. The path provided should point to the dataset on your local machine.
+- **`df.head()`**: Displays the first 5 rows of the DataFrame, allowing you to inspect the data.
+
+### **3. Data Exploration**
+```python
+print("total number of people tested : ",df["name"].count())
+```
+- **`df["name"].count()`**: Counts the number of unique names (i.e., people) in the dataset.
+
+### **4. Feature Selection and Label Extraction**
+```python
+features = df.loc[:, df.columns != 'status'].values[:, 1:]
+labels = df.loc[:, 'status'].values
+```
+- **`features`**: Selects all columns except `status` and excludes the first column (`name`). The `values[:, 1:]` slices the data to exclude the first column and convert it into a NumPy array.
+- **`labels`**: Extracts the `status` column as the target variable (labels), indicating whether a person has Parkinson’s disease (1) or not (0).
+
+### **5. Display the Distribution of Labels**
+```python
+print(labels[labels == 1].shape[0], labels[labels == 0].shape[0])
+```
+- This line prints the number of positive cases (1) and negative cases (0) in the dataset.
+
+### **6. Feature Scaling**
+```python
+scaler = MinMaxScaler((-1, 1))
+x = scaler.fit_transform(features)
+y = labels
+```
+- **`MinMaxScaler((-1, 1))`**: Scales the features to a range between -1 and 1.
+- **`x`**: Contains the scaled features.
+- **`y`**: Contains the labels (target variable).
+
+### **7. Train-Test Split**
+```python
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=7)
+```
+- **`train_test_split()`**: Splits the dataset into training (80%) and testing (20%) sets. The `random_state=7` ensures reproducibility of the split.
+
+### **8. Model Training**
+```python
+model = XGBClassifier()
+model.fit(x_train, y_train)
+```
+- **`XGBClassifier()`**: Initializes the XGBoost classifier.
+- **`model.fit()`**: Trains the model on the training data (`x_train` and `y_train`).
+
+### **9. Making Predictions and Evaluating Accuracy**
+```python
+y_pred = model.predict(x_test)
+print(accuracy_score(y_test, y_pred) * 100)
+```
+- **`model.predict()`**: Makes predictions on the test set.
+- **`accuracy_score(y_test, y_pred) * 100`**: Calculates the accuracy of the model and multiplies by 100 to get a percentage.
+
+### **10. Visualizing the Predictions**
+```python
+categories = ["Diagnosed Negative", "Diagnosed Positive"]
+y_pred_per = [len(y_pred[y_pred == 0]) / len(y_pred), len(y_pred[y_pred == 1]) / len(y_pred)]  # Predicted probabilities or values
+
+plt.bar(categories, y_pred_per, color='skyblue')
+plt.xlabel('Categories')
+plt.ylabel('Predicted Probability')
+plt.title('Predictions by Category')
+plt.ylim([0, 1])  # Assuming predictions are probabilities between 0 and 1
+plt.show()
+```
+- **`categories`**: Defines the labels for the x-axis of the bar chart.
+- **`y_pred_per`**: Calculates the proportion of predictions that are negative (`0`) and positive (`1`), effectively giving the predicted probability for each category.
+- **`plt.bar()`**: Creates a bar chart with the categories on the x-axis and their corresponding predicted probabilities on the y-axis.
+- **`plt.xlabel()`, `plt.ylabel()`, `plt.title()`**: Add labels and a title to the plot.
+- **`plt.ylim([0, 1])`**: Sets the y-axis limits from 0 to 1, as we are dealing with probabilities.
+- **`plt.show()`**: Displays the bar chart.
+
+### **Summary**
+This script takes a dataset for Parkinson’s disease detection, preprocesses the data, trains an XGBoost classifier, evaluates its accuracy, and then visualizes the proportion of predictions in each category (positive and negative diagnoses) using a bar chart.
